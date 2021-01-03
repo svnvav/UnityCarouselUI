@@ -1,5 +1,4 @@
-﻿
-using System.Collections;
+﻿using System.Collections;
 using System.Linq;
 using UnityCarouselUI;
 using UnityEngine;
@@ -7,7 +6,6 @@ using UnityEngine.EventSystems;
 
 namespace UnityCarouselUI
 {
-
     public class CarouselSwiper : MonoBehaviour, IDragHandler, IEndDragHandler
     {
         [SerializeField] private RectTransform _pagesContainer;
@@ -28,12 +26,13 @@ namespace UnityCarouselUI
             _locationAnchorMinX = _pagesContainer.anchorMin.x;
             _locationAnchorMaxX = _pagesContainer.anchorMax.x;
             _pageCount = _pagesContainer.childCount;
-            
+
             _indicators = _indicatorsContainer.GetComponentsInChildren<CarouselIndicator>();
             foreach (var indicator in _indicators)
             {
                 indicator.SetTransparency(0);
             }
+
             _indicators[_currentPage].SetTransparency(1);
         }
 
@@ -42,7 +41,7 @@ namespace UnityCarouselUI
             var difference = (eventData.pressPosition.x - eventData.position.x) / PageWidth;
             _pagesContainer.anchorMin = new Vector2(_locationAnchorMinX - difference, _pagesContainer.anchorMin.y);
             _pagesContainer.anchorMax = new Vector2(_locationAnchorMaxX - difference, _pagesContainer.anchorMax.y);
-            
+
             if (difference > 0 && _currentPage < _pageCount - 1)
             {
                 _indicators[_currentPage].SetTransparency(1 - difference);
@@ -73,6 +72,7 @@ namespace UnityCarouselUI
                 _locationAnchorMaxX = -_currentPage + 1;
             }
 
+            StartCoroutine(SmoothIndicatorsChange(_easing));
             StartCoroutine(SmoothMove(_pagesContainer.anchorMin.x, _pagesContainer.anchorMax.x, _easing));
         }
 
@@ -87,15 +87,15 @@ namespace UnityCarouselUI
                 for (int i = 0; i < _indicators.Length; i++)
                 {
                     if (i == _currentPage)
-                    {
-                        //_indicators[i].SetTransparency();
-                    }
+                        _indicators[i].SetTransparency(Mathf.Lerp(startTransparency[i], 1, t));
+                    else
+                        _indicators[i].SetTransparency(Mathf.Lerp(startTransparency[i], 0, t));
                 }
-                
+
                 yield return null;
             }
         }
-        
+
         private IEnumerator SmoothMove(float startAnchorMinX, float startAnchorMaxX, float seconds)
         {
             var t = 0f;
